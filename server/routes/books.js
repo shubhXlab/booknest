@@ -6,6 +6,15 @@ const upload = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
+// Get categories
+router.get(
+  '/categories',
+  asyncHandler(async (req, res) => {
+    const categories = await db.prepare('SELECT * FROM categories ORDER BY name').all();
+    res.json(categories);
+  })
+);
+
 // Get all books (with optional search & category filter)
 router.get(
   '/',
@@ -32,7 +41,7 @@ router.get(
     }
 
     sql += ` ORDER BY b.created_at DESC`;
-    const books = db.prepare(sql).all(params);
+    const books = await db.prepare(sql).all(params);
     res.json(books);
   })
 );
@@ -41,7 +50,7 @@ router.get(
 router.get(
   '/:id',
   asyncHandler(async (req, res) => {
-    const book = db
+    const book = await db
       .prepare(
         `SELECT b.*, c.name AS category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?`
       )
@@ -69,7 +78,7 @@ router.post(
 
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const book = db
+    const book = await db
       .prepare(
         'INSERT INTO books (title, author, price, description, category_id, stock, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)'
       )
@@ -87,21 +96,21 @@ router.put(
   upload.single('image'),
   asyncHandler(async (req, res) => {
     const { title, author, price, description, category_id, stock } = req.body;
-    const book = db.prepare('SELECT id FROM books WHERE id = ?').get(req.params.id);
+    const book = await db.prepare('SELECT id FROM books WHERE id = ?').get(req.params.id);
     if (!book) {
       res.status(404);
       throw new Error('Book not found');
     }
 
     let imageUrl = null;
-    const existing = db.prepare('SELECT image_url FROM books WHERE id = ?').get(req.params.id);
+    const existing = await db.prepare('SELECT image_url FROM books WHERE id = ?').get(req.params.id);
     if (req.file) {
       imageUrl = `/uploads/${req.file.filename}`;
     } else {
       imageUrl = existing.image_url;
     }
 
-    db.prepare(
+    await db.prepare(
       'UPDATE books SET title = ?, author = ?, price = ?, description = ?, category_id = ?, stock = ?, image_url = ? WHERE id = ?'
     ).run(title, author, Number(price), description || '', category_id || null, Number(stock || 0), imageUrl, req.params.id);
 
@@ -115,22 +124,13 @@ router.delete(
   protect,
   admin,
   asyncHandler(async (req, res) => {
-    const book = db.prepare('SELECT id FROM books WHERE id = ?').get(req.params.id);
+    const book = await db.prepare('SELECT id FROM books WHERE id = ?').get(req.params.id);
     if (!book) {
       res.status(404);
       throw new Error('Book not found');
     }
-    db.prepare('DELETE FROM books WHERE id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM books WHERE id = ?').run(req.params.id);
     res.json({ message: 'Book removed' });
-  })
-);
-
-// Get categories
-router.get(
-  '/categories',
-  asyncHandler(async (req, res) => {
-    const categories = db.prepare('SELECT * FROM categories ORDER BY name').all();
-    res.json(categories);
   })
 );
 

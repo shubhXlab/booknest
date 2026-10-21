@@ -16,7 +16,7 @@ router.post(
       throw new Error('Please add all fields');
     }
 
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
     if (existing) {
       res.status(400);
       throw new Error('User already exists');
@@ -26,7 +26,7 @@ router.post(
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = db
+    const user = await db
       .prepare(
         'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)'
       )
@@ -54,7 +54,7 @@ router.post(
       throw new Error('Please add email and password');
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     if (!user) {
       res.status(401);
       throw new Error('Invalid credentials');
@@ -82,7 +82,7 @@ router.get(
   '/me',
   protect,
   asyncHandler(async (req, res) => {
-    const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(req.user.id);
+    const user = await db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(req.user.id);
     if (!user) {
       res.status(404);
       throw new Error('User not found');

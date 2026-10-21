@@ -10,20 +10,29 @@ const books = [
   { title: 'A Brief History of Time', author: 'Stephen Hawking', price: 16.99, description: 'From the big bang to black holes.', category: 'Science', stock: 20 },
 ];
 
-for (const cat of categories) {
-  db.prepare('INSERT OR IGNORE INTO categories (name) VALUES (?)').run(cat);
-}
-
-const catMap = {};
-db.prepare('SELECT * FROM categories').all().forEach(c => { catMap[c.name] = c.id; });
-
-for (const b of books) {
-  const existing = db.prepare('SELECT id FROM books WHERE title = ?').get(b.title);
-  if (!existing) {
-    db.prepare(
-      'INSERT INTO books (title, author, price, description, category_id, stock) VALUES (?, ?, ?, ?, ?, ?)'
-    ).run(b.title, b.author, b.price, b.description, catMap[b.category], b.stock);
+async function seed() {
+  for (const cat of categories) {
+    await db.prepare('INSERT OR IGNORE INTO categories (name) VALUES (?)').run(cat);
   }
+
+  const catMap = {};
+  const cats = await db.prepare('SELECT * FROM categories').all();
+  cats.forEach(c => { catMap[c.name] = c.id; });
+
+  for (const b of books) {
+    const existing = await db.prepare('SELECT id FROM books WHERE title = ?').get(b.title);
+    if (!existing) {
+      await db.prepare(
+        'INSERT INTO books (title, author, price, description, category_id, stock) VALUES (?, ?, ?, ?, ?, ?)'
+      ).run(b.title, b.author, b.price, b.description, catMap[b.category], b.stock);
+    }
+  }
+
+  console.log('Database seeded.');
+  process.exit(0);
 }
 
-console.log('Database seeded.');
+seed().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

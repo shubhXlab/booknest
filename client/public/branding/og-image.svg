@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#273a27;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1d2f1d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#131f13;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a7c4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#639663;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9214;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffab3d;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#4a7c4a;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#4a7c4a;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Center glow -->
+  <ellipse cx="600" cy="315" rx="400" ry="250" fill="url(#centerGlow)"/>
+  
+  <!-- Decorative elements -->
+  <g opacity="0.05">
+    <g transform="translate(150, 100) scale(1.2)">
+      <path d="M24 32 Q24 40 32 44 Q40 48 48 44 Q56 40 56 32 Q56 24 48 20 Q40 16 32 20 Q24 24 24 32 Z" fill="url(#leafGradient)"/>
+    </g>
+    <g transform="translate(1000, 480) scale(1) rotate(-20)">
+      <path d="M24 32 Q24 40 32 44 Q40 48 48 44 Q56 40 56 32 Q56 24 48 20 Q40 16 32 20 Q24 24 24 32 Z" fill="url(#leafGradient)"/>
+    </g>
+    <g transform="translate(80, 500) scale(0.8) rotate(60)">
+      <path d="M24 32 Q24 40 32 44 Q40 48 48 44 Q56 40 56 32 Q56 24 48 20 Q40 16 32 20 Q24 24 24 32 Z" fill="url(#leafGradient)"/>
+    </g>
+  </g>
+  
+  <!-- Large nest icon centered -->
+  <g transform="translate(440, 100)">
+    <g transform="scale(3)">
+      <path d="M24 32 Q24 40 32 44 Q40 48 48 44 Q56 40 56 32 Q56 24 48 20 Q40 16 32 20 Q24 24 24 32 Z" 
+            fill="url(#leafGradient)" opacity="0.2"/>
+      <path d="M24 32 Q24 40 32 44 Q40 48 48 44 Q56 40 56 32 Q56 24 48 20 Q40 16 32 20 Q24 24 24 32 Z" 
+            fill="none" stroke="url(#leafGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      
+      <ellipse cx="32" cy="34" rx="6" ry="8" fill="url(#accentGradient)"/>
+      <ellipse cx="42" cy="36" rx="5" ry="7" fill="url(#accentGradient)" transform="rotate(-15 42 36)"/>
+      <ellipse cx="25" cy="36" rx="5" ry="7" fill="url(#accentGradient)" transform="rotate(15 25 36)"/>
+      
+      <ellipse cx="30" cy="31" rx="1.5" ry="2" fill="rgba(255,255,255,0.5)"/>
+      <ellipse cx="40" cy="33" rx="1.2" ry="1.8" fill="rgba(255,255,255,0.5)"/>
+      <ellipse cx="23" cy="33" rx="1.2" ry="1.8" fill="rgba(255,255,255,0.5)"/>
+    </g>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="340" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="52" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="-1px">BookNest</text>
+  
+  <!-- Tagline -->
+  <text x="600" y="395" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="20" font-weight="400" fill="#d4d4d4" text-anchor="middle" letter-spacing="0.5px">Your Reading Sanctuary</text>
+  
+  <!-- Divider -->
+  <line x1="500" y1="420" x2="700" y2="420" stroke="url(#accentGradient)" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Description -->
+  <text x="600" y="455" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="17" font-weight="400" fill="#a3a3a3" text-anchor="middle" letter-spacing="0.3px">Track. Discover. Cherish every story.</text>
+  
+  <!-- Website -->
+  <text x="600" y="520" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="15" font-weight="500" fill="#639663" text-anchor="middle">booknest.app</text>
+  
+  <!-- Bottom accent bar -->
+  <rect x="300" y="550" width="600" height="4" rx="2" fill="url(#accentGradient)"/>
+</svg>

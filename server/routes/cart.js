@@ -10,7 +10,7 @@ router.get(
   '/',
   protect,
   asyncHandler(async (req, res) => {
-    const items = db
+    const items = await db
       .prepare(
         `SELECT c.id, c.book_id, c.quantity, b.title, b.author, b.price, b.image_url, b.stock
          FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?`
@@ -31,7 +31,7 @@ router.post(
       throw new Error('Book id is required');
     }
 
-    const book = db.prepare('SELECT id, stock FROM books WHERE id = ?').get(book_id);
+    const book = await db.prepare('SELECT id, stock FROM books WHERE id = ?').get(book_id);
     if (!book) {
       res.status(404);
       throw new Error('Book not found');
@@ -41,7 +41,7 @@ router.post(
       throw new Error('Not enough stock');
     }
 
-    const existing = db
+    const existing = await db
       .prepare('SELECT * FROM cart WHERE user_id = ? AND book_id = ?')
       .get(req.user.id, book_id);
 
@@ -51,10 +51,10 @@ router.post(
         res.status(400);
         throw new Error('Not enough stock');
       }
-      db.prepare('UPDATE cart SET quantity = ? WHERE id = ?').run(newQty, existing.id);
+      await db.prepare('UPDATE cart SET quantity = ? WHERE id = ?').run(newQty, existing.id);
       res.json({ ...existing, quantity: newQty });
     } else {
-      const item = db
+      const item = await db
         .prepare('INSERT INTO cart (user_id, book_id, quantity) VALUES (?, ?, ?)')
         .run(req.user.id, book_id, Number(quantity));
       res.status(201).json({ id: item.lastInsertRowid, user_id: req.user.id, book_id, quantity: Number(quantity) });
@@ -73,7 +73,7 @@ router.put(
       throw new Error('Valid quantity required');
     }
 
-    const cartItem = db
+    const cartItem = await db
       .prepare('SELECT * FROM cart WHERE id = ? AND user_id = ?')
       .get(req.params.id, req.user.id);
     if (!cartItem) {
@@ -81,13 +81,13 @@ router.put(
       throw new Error('Cart item not found');
     }
 
-    const book = db.prepare('SELECT stock FROM books WHERE id = ?').get(cartItem.book_id);
+    const book = await db.prepare('SELECT stock FROM books WHERE id = ?').get(cartItem.book_id);
     if (Number(quantity) > book.stock) {
       res.status(400);
       throw new Error('Not enough stock');
     }
 
-    db.prepare('UPDATE cart SET quantity = ? WHERE id = ?').run(Number(quantity), req.params.id);
+    await db.prepare('UPDATE cart SET quantity = ? WHERE id = ?').run(Number(quantity), req.params.id);
     res.json({ id: req.params.id, quantity: Number(quantity) });
   })
 );
@@ -97,14 +97,14 @@ router.delete(
   '/:id',
   protect,
   asyncHandler(async (req, res) => {
-    const cartItem = db
+    const cartItem = await db
       .prepare('SELECT * FROM cart WHERE id = ? AND user_id = ?')
       .get(req.params.id, req.user.id);
     if (!cartItem) {
       res.status(404);
       throw new Error('Cart item not found');
     }
-    db.prepare('DELETE FROM cart WHERE id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM cart WHERE id = ?').run(req.params.id);
     res.json({ message: 'Removed from cart' });
   })
 );
@@ -114,7 +114,7 @@ router.delete(
   '/',
   protect,
   asyncHandler(async (req, res) => {
-    db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
+    await db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
     res.json({ message: 'Cart cleared' });
   })
 );

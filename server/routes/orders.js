@@ -16,7 +16,7 @@ router.post(
       throw new Error('Shipping address is required');
     }
 
-    const cartItems = db
+    const cartItems = await db
       .prepare(
         `SELECT c.book_id, c.quantity, b.price, b.stock FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?`
       )
@@ -45,17 +45,17 @@ router.post(
     );
     const updateStock = db.prepare('UPDATE books SET stock = stock - ? WHERE id = ?');
 
-    const tx = db.transaction(() => {
-      const order = insertOrder.run(req.user.id, Number(totalAmount.toFixed(2)), shipping_address, 'pending');
+    const tx = db.transaction(async () => {
+      const order = await insertOrder.run(req.user.id, Number(totalAmount.toFixed(2)), shipping_address, 'pending');
       for (const item of cartItems) {
-        insertItem.run(order.lastInsertRowid, item.book_id, item.quantity, item.price);
-        updateStock.run(item.quantity, item.book_id);
+        await insertItem.run(order.lastInsertRowid, item.book_id, item.quantity, item.price);
+        await updateStock.run(item.quantity, item.book_id);
       }
-      db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
+      await db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
       return order.lastInsertRowid;
     });
 
-    const orderId = tx();
+    const orderId = await tx();
 
     res.status(201).json({ id: orderId, total_amount: totalAmount, status: 'pending' });
   })
@@ -66,13 +66,13 @@ router.get(
   '/',
   protect,
   asyncHandler(async (req, res) => {
-    const orders = db
+    const orders = await db
       .prepare(
         `SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`
       )
       .all(req.user.id);
     for (const order of orders) {
-      order.items = db
+      order.items = await db
         .prepare(
           `SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?`
         )
@@ -87,7 +87,7 @@ router.get(
   '/:id',
   protect,
   asyncHandler(async (req, res) => {
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    const order = await db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
     if (!order) {
       res.status(404);
       throw new Error('Order not found');
@@ -96,7 +96,7 @@ router.get(
       res.status(403);
       throw new Error('Not authorized');
     }
-    order.items = db
+    order.items = await db
       .prepare(
         `SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?`
       )
