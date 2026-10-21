@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (client)
+        working-directory: ./client
+        run: npm ci
+
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm ci
+
+      - name: Lint (client)
+        working-directory: ./client
+        run: npm run lint
+
+      - name: Lint (server)
+        working-directory: ./server
+        run: npm run lint
+
+      - name: Type check (client)
+        working-directory: ./client
+        run: npm run type-check
+
+      - name: Type check (server)
+        working-directory: ./server
+        run: npm run type-check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (client)
+        working-directory: ./client
+        run: npm ci
+
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm ci
+
+      - name: Test (client)
+        working-directory: ./client
+        run: npm run test -- --ci --coverage
+
+      - name: Test (server)
+        working-directory: ./server
+        run: npm run test -- --ci --coverage
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (client)
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build (client)
+        working-directory: ./client
+        run: npm run build
+
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm ci
+
+      - name: Build (server)
+        working-directory: ./server
+        run: npm run build
+
+      - name: Upload client build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+          retention-days: 7
+
+      - name: Upload server build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-dist
+          path: server/dist
+          retention-days: 7

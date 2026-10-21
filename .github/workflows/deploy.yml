@@ -1,0 +1,155 @@
+name: Deploy to cPanel/WHM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+  DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (client)
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build (client)
+        working-directory: ./client
+        run: npm run build
+
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm ci
+
+      - name: Build (server)
+        working-directory: ./server
+        run: npm run build
+
+      - name: Upload client build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+          retention-days: 7
+
+      - name: Upload server build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-dist
+          path: server/dist
+          retention-days: 7
+
+  deploy:
+    name: Deploy via SSH/rsync
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download client build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+
+      - name: Download server build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: server-dist
+          path: server/dist
+
+      - name: Write production .env (server)
+        run: |
+          cat > server/.env << 'EOF'
+          NODE_ENV=production
+          PORT=4000
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          EOF
+
+      - name: Deploy via SSH (appleboy/ssh-action)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            echo "Deploying to ${{ env.DEPLOY_PATH }}"
+            mkdir -p ${{ env.DEPLOY_PATH }}/client ${{ env.DEPLOY_PATH }}/server
+            
+            # Sync client files
+            rsync -avz --delete ./client/dist/ ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/client/
+            
+            # Sync server files
+            rsync -avz --delete ./server/ ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/server/
+            
+            # Remote install & restart (configured by Server Manager)
+            ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'REMOTE_EOF'
+              set -e
+              cd ${{ env.DEPLOY_PATH }}/server
+              
+              # Ensure database directory exists with correct permissions
+              mkdir -p $(dirname ${{ env.DEPLOY_PATH }}/server/database.sqlite 2>/dev/null || echo /tmp)
+              touch ${{ env.DEPLOY_PATH }}/server/database.sqlite
+              chmod 664 ${{ env.DEPLOY_PATH }}/server/database.sqlite
+              chmod 775 $(dirname ${{ env.DEPLOY_PATH }}/server/database.sqlite)
+              
+              # Install production deps
+              npm ci --production
+              
+              # Restart app — Server Manager configures Passenger/PM2
+              # Option A: PM2
+              if command -v pm2 >/dev/null 2>&1; then
+                pm2 restart booknest-server 2>/dev/null || pm2 start server.js --name booknest-server
+              # Option B: Passenger (touch restart.txt)
+              elif [ -d "${{ env.DEPLOY_PATH }}/tmp" ]; then
+                touch ${{ env.DEPLOY_PATH }}/tmp/restart.txt
+              fi
+            REMOTE_EOF
+
+  deploy-ftp:
+    name: Deploy via FTP (fallback)
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ failure() && github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download client build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+
+      - name: Deploy client via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_FTP_PASSWORD }}
+          server-dir: ${{ env.DEPLOY_PATH }}/client/
+          local-dir: ./client/dist/
+          exclude: |
+            **/.git*
+            **/node_modules/**
+            **/.env*

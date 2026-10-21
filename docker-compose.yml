@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:4000
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./server/database.sqlite:/app/database.sqlite
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - JWT_SECRET=dev-secret-change-me
+      - FRONTEND_URL=http://localhost:5173
+
+volumes:
+  booknest-sqlite:
