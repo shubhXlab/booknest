@@ -1,0 +1,25 @@
+# Code owners for BookNest
+# These users/teams will be automatically requested for review on PRs
+
+# Global owners
+* @shubhXlab
+
+# Backend
+/server/ @shubhXlab
+
+# Frontend
+/client/ @shubhXlab
+
+# CI/CD & Deployment
+/.github/workflows/ @shubhXlab
+/.github/dependabot.yml @shubhXlab
+/docker-compose.yml @shubhXlab
+
+# Documentation
+/README.md @shubhXlab
+/DEPLOY.md @shubhXlab
+/TEST_PLAN.md @shubhXlab
+/LICENSE @shubhXlab
+
+# Design System
+/booknest-design-system/ @shubhXlab
