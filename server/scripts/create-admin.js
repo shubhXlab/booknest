@@ -3,14 +3,14 @@ const bcrypt = require('bcryptjs');
 
 (async () => {
   const email = 'admin@booknest.com';
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
   if (existing) {
     console.log('Admin already exists');
     process.exit(0);
   }
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash('admin123', salt);
-  db.prepare(
+  await db.prepare(
     'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)'
   ).run('Admin User', email, hash, 'admin');
   console.log('Admin created: admin@booknest.com / admin123');

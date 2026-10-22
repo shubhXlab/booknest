@@ -1,0 +1,45 @@
+
+> booknest-client@1.0.0 dev
+> vite --host
+
+Re-optimizing dependencies because lockfile has changed
+Port 5173 is in use, trying another one...
+
+  VITE v5.4.21  ready in 354 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: http://172.18.0.2:5174/
+Error:   Failed to scan for dependencies from entries:
+  /workspace/booknest/client/index.html
+
+  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/components/BookCard.jsx" for import "BookCard"[0m
+
+    src/components/index.js:3:9:
+[37m      3 │ export { [32mBookCard[37m } from './BookCard';
+        ╵          [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/components/Navbar.jsx" for import "Navbar"[0m
+
+    src/components/index.js:4:9:
+[37m      4 │ export { [32mNavbar[37m } from './Navbar';
+        ╵          [32m~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/components/ProtectedRoute.jsx" for import "ProtectedRoute"[0m
+
+    src/components/index.js:5:9:
+[37m      5 │ export { [32mProtectedRoute[37m } from './ProtectedRoute';
+        ╵          [32m~~~~~~~~~~~~~~[0m
+
+
+    at failureErrorWithLog (/workspace/booknest/client/node_modules/esbuild/lib/main.js:1472:15)
+    at /workspace/booknest/client/node_modules/esbuild/lib/main.js:945:25
+    at runOnEndCallbacks (/workspace/booknest/client/node_modules/esbuild/lib/main.js:1315:45)
+    at buildResponseToResult (/workspace/booknest/client/node_modules/esbuild/lib/main.js:943:7)
+    at /workspace/booknest/client/node_modules/esbuild/lib/main.js:955:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/workspace/booknest/client/node_modules/esbuild/lib/main.js:954:54)
+    at handleRequest (/workspace/booknest/client/node_modules/esbuild/lib/main.js:647:17)
+    at handleIncomingPacket (/workspace/booknest/client/node_modules/esbuild/lib/main.js:672:7)
+    at Socket.readFromStdout (/workspace/booknest/client/node_modules/esbuild/lib/main.js:600:7)

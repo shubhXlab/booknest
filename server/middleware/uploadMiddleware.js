@@ -23,4 +23,16 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } });
 
-module.exports = upload;
+// Conditional multer: only parse multipart when Content-Type is multipart/form-data.
+// For JSON requests, passes through so express.json() handles the body normally.
+function conditionalUpload(fieldName) {
+  return (req, res, next) => {
+    const contentType = req.headers['content-type'] || '';
+    if (contentType.includes('multipart/form-data')) {
+      return upload.single(fieldName)(req, res, next);
+    }
+    next();
+  };
+}
+
+module.exports = { upload, conditionalUpload };

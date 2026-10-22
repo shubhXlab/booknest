@@ -2,7 +2,7 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const db = require('../config/db');
 const { protect, admin } = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -20,27 +20,27 @@ router.get(
   '/',
   asyncHandler(async (req, res) => {
     const { search, category, minPrice, maxPrice } = req.query;
-    let sql = `SELECT b.*, c.name AS category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE 1=1`;
+    let sql = 'SELECT b.*, c.name AS category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE 1=1';
     const params = [];
 
     if (search) {
-      sql += ` AND (b.title LIKE ? OR b.author LIKE ?)`;
+      sql += ' AND (b.title LIKE ? OR b.author LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
     if (category) {
-      sql += ` AND c.name = ?`;
+      sql += ' AND c.name = ?';
       params.push(category);
     }
     if (minPrice) {
-      sql += ` AND b.price >= ?`;
+      sql += ' AND b.price >= ?';
       params.push(Number(minPrice));
     }
     if (maxPrice) {
-      sql += ` AND b.price <= ?`;
+      sql += ' AND b.price <= ?';
       params.push(Number(maxPrice));
     }
 
-    sql += ` ORDER BY b.created_at DESC`;
+    sql += ' ORDER BY b.created_at DESC';
     const books = await db.prepare(sql).all(params);
     res.json(books);
   })
@@ -52,7 +52,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const book = await db
       .prepare(
-        `SELECT b.*, c.name AS category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?`
+        'SELECT b.*, c.name AS category_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?'
       )
       .get(req.params.id);
     if (!book) {

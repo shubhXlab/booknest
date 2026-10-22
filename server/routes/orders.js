@@ -18,7 +18,7 @@ router.post(
 
     const cartItems = await db
       .prepare(
-        `SELECT c.book_id, c.quantity, b.price, b.stock FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?`
+        'SELECT c.book_id, c.quantity, b.price, b.stock FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?'
       )
       .all(req.user.id);
 
@@ -45,19 +45,14 @@ router.post(
     );
     const updateStock = db.prepare('UPDATE books SET stock = stock - ? WHERE id = ?');
 
-    const tx = db.transaction(async () => {
-      const order = await insertOrder.run(req.user.id, Number(totalAmount.toFixed(2)), shipping_address, 'pending');
-      for (const item of cartItems) {
-        await insertItem.run(order.lastInsertRowid, item.book_id, item.quantity, item.price);
-        await updateStock.run(item.quantity, item.book_id);
-      }
-      await db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
-      return order.lastInsertRowid;
-    });
+    const order = await insertOrder.run(req.user.id, Number(totalAmount.toFixed(2)), shipping_address, 'pending');
+    for (const item of cartItems) {
+      await insertItem.run(order.lastInsertRowid, item.book_id, item.quantity, item.price);
+      await updateStock.run(item.quantity, item.book_id);
+    }
+    await db.prepare('DELETE FROM cart WHERE user_id = ?').run(req.user.id);
 
-    const orderId = await tx();
-
-    res.status(201).json({ id: orderId, total_amount: totalAmount, status: 'pending' });
+    res.status(201).json({ id: order.lastInsertRowid, total_amount: totalAmount, status: 'pending' });
   })
 );
 
@@ -68,13 +63,13 @@ router.get(
   asyncHandler(async (req, res) => {
     const orders = await db
       .prepare(
-        `SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`
+        'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC'
       )
       .all(req.user.id);
     for (const order of orders) {
       order.items = await db
         .prepare(
-          `SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?`
+          'SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?'
         )
         .all(order.id);
     }
@@ -98,7 +93,7 @@ router.get(
     }
     order.items = await db
       .prepare(
-        `SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?`
+        'SELECT oi.*, b.title, b.author, b.image_url FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ?'
       )
       .all(order.id);
     res.json(order);

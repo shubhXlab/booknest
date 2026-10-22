@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Trash2, Plus, RotateCw } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -46,7 +45,9 @@ export default function Cart() {
         {items.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-500 mb-4">Your cart is empty.</p>
-            <Link to="/books" className="text-indigo-600 hover:underline">Start shopping</Link>
+            <a href="/books" className="text-indigo-600 hover:underline">
+              Start shopping
+            </a>
           </div>
         ) : (
           <>
@@ -111,12 +112,12 @@ export default function Cart() {
                 <p className="text-gray-500">Total</p>
                 <p className="text-xl font-bold">₹{total.toFixed(2)}</p>
               </div>
-              <Link
-                to="/checkout"
+              <a
+                href="/checkout"
                 className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700"
               >
                 Checkout
-              </Link>
+              </a>
             </div>
           </>
         )}
@@ -124,5 +125,3 @@ export default function Cart() {
     </div>
   );
 }
-
-import { Minus } from 'lucide-react';

@@ -3,6 +3,8 @@ const asyncHandler = require('express-async-handler');
 const db = require('../config/db');
 const { protect, admin } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
@@ -22,7 +24,6 @@ router.post(
       throw new Error('User already exists');
     }
 
-    const bcrypt = require('bcryptjs');
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -60,7 +61,6 @@ router.post(
       throw new Error('Invalid credentials');
     }
 
-    const bcrypt = require('bcryptjs');
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       res.status(401);
@@ -94,7 +94,5 @@ router.get(
 function signToken(id, email, role) {
   return jwt.sign({ id, email, role }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
-
-const jwt = require('jsonwebtoken');
 
 module.exports = router;

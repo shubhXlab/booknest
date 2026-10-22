@@ -22,6 +22,28 @@ async function ensureDb() {
   }
 
   db.run('PRAGMA foreign_keys = ON');
+
+  // Self-initialize schema (safe to re-run: CREATE TABLE IF NOT EXISTS)
+  const schemaPath = path.join(__dirname, '..', 'scripts', 'schema.sql');
+  if (fs.existsSync(schemaPath)) {
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    db.exec(schema);
+  }
+
+  // Migrations for existing databases (safe to re-run)
+  const migrations = [
+    'ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1',
+    'ALTER TABLE books ADD COLUMN published INTEGER DEFAULT 1',
+    'ALTER TABLE books ADD COLUMN deleted_at DATETIME',
+  ];
+  for (const migration of migrations) {
+    try {
+      db.exec(migration);
+    } catch (_) {
+      // Column already exists — safe to ignore
+    }
+  }
+
   sqlInitialized = true;
   console.log('Database initialized with sql.js');
 }
@@ -104,12 +126,16 @@ function transaction(fn) {
   return ensureDb().then(() => {
     return new Promise((resolve, reject) => {
       try {
-        db.run('BEGIN TRANSACTION');
-        const result = fn();
-        db.run('COMMIT');
-        resolve(result);
+        db.exec('BEGIN TRANSACTION');
+        Promise.resolve(fn()).then(resolvedValue => {
+          db.exec('COMMIT');
+          resolve(resolvedValue);
+        }).catch(err => {
+          try { db.exec('ROLLBACK'); } catch (_) {}
+          reject(err);
+        });
       } catch (err) {
-        try { db.run('ROLLBACK'); } catch (_) {}
+        try { db.exec('ROLLBACK'); } catch (_) {}
         reject(err);
       }
     });

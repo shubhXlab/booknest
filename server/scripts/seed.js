@@ -6,7 +6,7 @@ const books = [
   { title: 'Atomic Habits', author: 'James Clear', price: 14.50, description: 'An easy and proven way to build good habits.', category: 'Non-Fiction', stock: 40 },
   { title: 'Clean Code', author: 'Robert C. Martin', price: 39.99, description: 'A handbook of agile software craftsmanship.', category: 'Technology', stock: 25 },
   { title: 'Sapiens', author: 'Yuval Noah Harari', price: 18.75, description: 'A brief history of humankind.', category: 'History', stock: 35 },
-  { title: 'The Lean Startup', author: 'Eric Ries', price: 22.00, description: "How today's entrepreneurs use continuous innovation.", category: 'Business', stock: 30 },
+  { title: 'The Lean Startup', author: 'Eric Ries', price: 22.00, description: 'How today\'s entrepreneurs use continuous innovation.', category: 'Business', stock: 30 },
   { title: 'A Brief History of Time', author: 'Stephen Hawking', price: 16.99, description: 'From the big bang to black holes.', category: 'Science', stock: 20 },
 ];
 
